@@ -12,7 +12,7 @@ test.describe("Inbox Page", () => {
 
   test("should display inbox page correctly", async () => {
     await inboxPage.verifyPageLoaded();
-    await inboxPage.verifyUrl("https://dashboard-template.nuxt.dev/inbox");
+    await inboxPage.verifyUrl("/inbox");
     await inboxPage.verifyPageTitle("Nuxt Dashboard Template");
   });
 
@@ -124,14 +124,12 @@ test.describe("Inbox Page", () => {
 
   test("should find emails by pattern", async () => {
     // Find emails containing specific keywords
-    const meetingEmails = await inboxPage.findEmailsByPattern(
-      /meeting|schedule/i
-    );
+    const meetingEmails =
+      await inboxPage.findEmailsByPattern(/meeting|schedule/i);
     expect(meetingEmails.length).toBeGreaterThanOrEqual(0);
 
-    const projectEmails = await inboxPage.findEmailsByPattern(
-      /project|sprint/i
-    );
+    const projectEmails =
+      await inboxPage.findEmailsByPattern(/project|sprint/i);
     expect(projectEmails.length).toBeGreaterThanOrEqual(0);
   });
 
@@ -168,11 +166,11 @@ test.describe("Inbox Page", () => {
 
   test("should navigate back to home from inbox", async () => {
     await inboxPage.navigateToHome();
-    await inboxPage.verifyUrl("https://dashboard-template.nuxt.dev/");
+    await inboxPage.verifyUrl("/");
   });
 
   test("should navigate to customers from inbox", async () => {
     await inboxPage.navigateToCustomers();
-    await inboxPage.verifyUrl("https://dashboard-template.nuxt.dev/customers");
+    await inboxPage.verifyUrl("/customers");
   });
 });

@@ -119,7 +119,7 @@ export class SettingsPage extends BasePage {
   }
 
   async goto() {
-    await super.goto("https://dashboard-template.nuxt.dev/settings");
+    await super.goto("/settings");
   }
 
   async verifyPageLoaded() {
@@ -236,7 +236,7 @@ export class SettingsPage extends BasePage {
 
   async verifyFieldValue(
     field: "name" | "email" | "username" | "bio",
-    expectedValue: string
+    expectedValue: string,
   ) {
     const fieldLocators = {
       name: this.nameField,
@@ -287,19 +287,19 @@ export class SettingsPage extends BasePage {
 
   async verifyFormDescriptions() {
     await expect(this.nameDescription).toContainText(
-      "Will appear on receipts, invoices, and other communication."
+      "Will appear on receipts, invoices, and other communication.",
     );
     await expect(this.emailDescription).toContainText(
-      "Used to sign in, for email receipts and product updates."
+      "Used to sign in, for email receipts and product updates.",
     );
     await expect(this.usernameDescription).toContainText(
-      "Your unique username for logging in and your profile URL."
+      "Your unique username for logging in and your profile URL.",
     );
     await expect(this.avatarDescription).toContainText(
-      "JPG, GIF or PNG. 1MB Max."
+      "JPG, GIF or PNG. 1MB Max.",
     );
     await expect(this.bioDescription).toContainText(
-      "Brief description for your profile. URLs are hyperlinked."
+      "Brief description for your profile. URLs are hyperlinked.",
     );
   }
 

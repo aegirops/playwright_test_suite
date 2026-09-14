@@ -12,7 +12,7 @@ test.describe("Home Page", () => {
 
   test("should display home page correctly", async () => {
     await homePage.verifyPageLoaded();
-    await homePage.verifyUrl("https://dashboard-template.nuxt.dev/");
+    await homePage.verifyUrl("/");
     await homePage.verifyPageTitle("Nuxt Dashboard Template");
   });
 
@@ -71,7 +71,7 @@ test.describe("Home Page", () => {
 
   test("should navigate to customers page when clicking stats card links", async () => {
     await homePage.clickStatsCardLink("customers");
-    await homePage.verifyUrl("https://dashboard-template.nuxt.dev/customers");
+    await homePage.verifyUrl("/customers");
   });
 
   test("should display specific order by ID", async () => {
@@ -94,11 +94,11 @@ test.describe("Home Page", () => {
   test("should navigate between pages using sidebar", async () => {
     // Navigate to inbox
     await homePage.navigateToInbox();
-    await homePage.verifyUrl("https://dashboard-template.nuxt.dev/inbox");
+    await homePage.verifyUrl("/inbox");
 
     // Navigate back to home
     await homePage.navigateToHome();
-    await homePage.verifyUrl("https://dashboard-template.nuxt.dev/");
+    await homePage.verifyUrl("/");
   });
 
   test("should collapse and expand sidebar", async () => {

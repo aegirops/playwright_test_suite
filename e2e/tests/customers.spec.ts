@@ -12,9 +12,7 @@ test.describe("Customers Page", () => {
 
   test("should display customers page correctly", async () => {
     await customersPage.verifyPageLoaded();
-    await customersPage.verifyUrl(
-      "https://dashboard-template.nuxt.dev/customers"
-    );
+    await customersPage.verifyUrl("/customers");
     await customersPage.verifyPageTitle("Nuxt Dashboard Template");
   });
 
@@ -49,9 +47,8 @@ test.describe("Customers Page", () => {
     await customersPage.filterByStatus("subscribed");
 
     // Verify filtered results contain only subscribed customers
-    const subscribedCustomers = await customersPage.getCustomersByStatus(
-      "subscribed"
-    );
+    const subscribedCustomers =
+      await customersPage.getCustomersByStatus("subscribed");
     expect(subscribedCustomers.length).toBeGreaterThan(0);
 
     // Reset filter
@@ -105,7 +102,7 @@ test.describe("Customers Page", () => {
 
     // Verify status is one of expected values
     expect(["subscribed", "unsubscribed", "bounced"]).toContain(
-      customerData.status
+      customerData.status,
     );
   });
 
@@ -124,7 +121,7 @@ test.describe("Customers Page", () => {
 
     // Find customer by email
     const customerByEmail = await customersPage.getCustomerByEmail(
-      "alex.smith@example.com"
+      "alex.smith@example.com",
     );
     if ((await customerByEmail.count()) > 0) {
       await expect(customerByEmail.first()).toBeVisible();
@@ -142,7 +139,7 @@ test.describe("Customers Page", () => {
 
       await customersPage.verifyCustomerStatus(
         customerRow,
-        customerData.status
+        customerData.status,
       );
     }
   });
@@ -206,7 +203,7 @@ test.describe("Customers Page", () => {
 
     // Verify at least some expected locations are present
     const hasExpectedLocations = expectedLocations.some((location) =>
-      foundLocations.includes(location)
+      foundLocations.includes(location),
     );
     expect(hasExpectedLocations).toBeTruthy();
   });
@@ -229,22 +226,18 @@ test.describe("Customers Page", () => {
   test("should navigate between different pages", async () => {
     // Navigate to home
     await customersPage.navigateToHome();
-    await customersPage.verifyUrl("https://dashboard-template.nuxt.dev/");
+    await customersPage.verifyUrl("/");
 
     // Navigate back to customers
     await customersPage.navigateToCustomers();
-    await customersPage.verifyUrl(
-      "https://dashboard-template.nuxt.dev/customers"
-    );
+    await customersPage.verifyUrl("/customers");
 
     // Navigate to inbox
     await customersPage.navigateToInbox();
-    await customersPage.verifyUrl("https://dashboard-template.nuxt.dev/inbox");
+    await customersPage.verifyUrl("/inbox");
 
     // Navigate back to customers
     await customersPage.navigateToCustomers();
-    await customersPage.verifyUrl(
-      "https://dashboard-template.nuxt.dev/customers"
-    );
+    await customersPage.verifyUrl("/customers");
   });
 });

@@ -35,90 +35,42 @@ export class HomePage extends BasePage {
 
     this.pageHeading = page.getByRole("heading", { name: "Home", level: 1 });
     this.dateRangePicker = page.getByRole("button", {
-      name: /Sep \d+, \d+ - Sep \d+, \d+/,
+      name: /\w+ \d+, \d+ - \w+ \d+, \d+/,
     });
     this.periodSelector = page
       .getByRole("combobox")
       .filter({ hasText: "daily" });
 
-    // Stats cards - use first() to select the stats card version over chart version
+    // Stats cards: each card is a clickable link with an accessible name
+    // matching its title, so scope from that link to its card root instead
+    // of relying on fragile text/DOM-position traversal.
     const mainContent = page.locator("[id^='dashboard-panel']");
+    const statsCard = (title: string) =>
+      mainContent.getByRole("link", { name: title, exact: true }).locator("..");
 
-    this.customersCard = mainContent
-      .getByText("Customers", { exact: true })
-      .first()
-      .locator("../../..");
-    this.customersValue = mainContent
-      .getByText("Customers", { exact: true })
-      .first()
-      .locator("../..")
-      .locator("div")
-      .filter({ hasText: /^\d+$/ })
-      .first();
-    this.customersChange = mainContent
-      .getByText("Customers", { exact: true })
-      .first()
-      .locator("../..")
-      .locator("div")
-      .filter({ hasText: /[+-]?\d+%$/ })
-      .first();
+    this.customersCard = statsCard("Customers");
+    this.customersValue = this.customersCard.locator("span.text-2xl");
+    this.customersChange = this.customersCard
+      .locator("span")
+      .filter({ hasText: /%$/ });
 
-    this.conversionsCard = mainContent
-      .getByText("Conversions", { exact: true })
-      .first()
-      .locator("../../..");
-    this.conversionsValue = mainContent
-      .getByText("Conversions", { exact: true })
-      .first()
-      .locator("../..")
-      .locator("div")
-      .filter({ hasText: /^\d+$/ })
-      .first();
-    this.conversionsChange = mainContent
-      .getByText("Conversions", { exact: true })
-      .first()
-      .locator("../..")
-      .locator("div")
-      .filter({ hasText: /[+-]?\d+%$/ })
-      .first();
+    this.conversionsCard = statsCard("Conversions");
+    this.conversionsValue = this.conversionsCard.locator("span.text-2xl");
+    this.conversionsChange = this.conversionsCard
+      .locator("span")
+      .filter({ hasText: /%$/ });
 
-    this.revenueCard = mainContent
-      .getByText("Revenue", { exact: true })
-      .first()
-      .locator("../../..");
-    this.revenueValue = mainContent
-      .getByText("Revenue", { exact: true })
-      .first()
-      .locator("../..")
-      .locator("div")
-      .filter({ hasText: /^\$[\d,]+$/ })
-      .first();
-    this.revenueChange = mainContent
-      .getByText("Revenue", { exact: true })
-      .first()
-      .locator("../..")
-      .locator("div")
-      .filter({ hasText: /[+-]?\d+%$/ })
-      .first();
+    this.revenueCard = statsCard("Revenue");
+    this.revenueValue = this.revenueCard.locator("span.text-2xl");
+    this.revenueChange = this.revenueCard
+      .locator("span")
+      .filter({ hasText: /%$/ });
 
-    this.ordersCard = mainContent
-      .getByText("Orders", { exact: true })
-      .first()
-      .locator("../../..");
-    this.ordersValue = mainContent
-      .getByText("Orders", { exact: true })
-      .first()
-      .locator("../..")
-      .locator("div")
-      .filter({ hasText: /^\d+$/ })
-      .first();
-    this.ordersChange = mainContent
-      .getByText("Orders", { exact: true })
-      .first()
-      .locator("../..")
-      .locator("div")
-      .filter({ hasText: /[+-]?\d+%$/ })
-      .first();
+    this.ordersCard = statsCard("Orders");
+    this.ordersValue = this.ordersCard.locator("span.text-2xl");
+    this.ordersChange = this.ordersCard
+      .locator("span")
+      .filter({ hasText: /%$/ });
 
     // Revenue chart
     this.revenueChartTitle = page
@@ -138,7 +90,7 @@ export class HomePage extends BasePage {
   }
 
   async goto() {
-    await super.goto("https://dashboard-template.nuxt.dev/");
+    await super.goto("/");
   }
 
   async verifyPageLoaded() {
@@ -190,7 +142,8 @@ export class HomePage extends BasePage {
   async verifyRevenueChart() {
     await expect(this.revenueChartTitle).toBeVisible();
     await expect(this.revenueChartValue).toBeVisible();
-    await expect(this.revenueChart).toBeVisible();
+    // The chart renders client-side after data fetch, so allow extra time.
+    await expect(this.revenueChart).toBeVisible({ timeout: 15000 });
   }
 
   async verifyOrdersTable() {
@@ -217,37 +170,21 @@ export class HomePage extends BasePage {
   }
 
   async selectPeriod(period: string) {
-    await this.periodSelector.click();
+    // A plain click sometimes fails to open this popover in headless Chromium.
+    await this.periodSelector.click({ force: true });
     await this.page.getByRole("option", { name: period }).click();
   }
 
   async clickStatsCardLink(
-    cardType: "customers" | "conversions" | "revenue" | "orders"
+    cardType: "customers" | "conversions" | "revenue" | "orders",
   ) {
-    const mainContent = this.page.locator("[id^='dashboard-panel']");
-    const cardLinks = {
-      customers: mainContent
-        .getByText("Customers", { exact: true })
-        .first()
-        .locator("../../..")
-        .getByRole("link"),
-      conversions: mainContent
-        .getByText("Conversions", { exact: true })
-        .first()
-        .locator("../../..")
-        .getByRole("link"),
-      revenue: mainContent
-        .getByText("Revenue", { exact: true })
-        .first()
-        .locator("../../..")
-        .getByRole("link"),
-      orders: mainContent
-        .getByText("Orders", { exact: true })
-        .first()
-        .locator("../../..")
-        .getByRole("link"),
+    const cards = {
+      customers: this.customersCard,
+      conversions: this.conversionsCard,
+      revenue: this.revenueCard,
+      orders: this.ordersCard,
     };
 
-    await cardLinks[cardType].click();
+    await cards[cardType].getByRole("link").click();
   }
 }

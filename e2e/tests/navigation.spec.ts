@@ -13,28 +13,24 @@ test.describe("Navigation Integration Tests", () => {
     await homePage.navigateToInbox();
     const inboxPage = new InboxPage(page);
     await inboxPage.verifyPageLoaded();
-    await inboxPage.verifyUrl("https://dashboard-template.nuxt.dev/inbox");
+    await inboxPage.verifyUrl("/inbox");
 
     // Navigate to Customers
     await inboxPage.navigateToCustomers();
     const customersPage = new CustomersPage(page);
     await customersPage.verifyPageLoaded();
-    await customersPage.verifyUrl(
-      "https://dashboard-template.nuxt.dev/customers"
-    );
+    await customersPage.verifyUrl("/customers");
 
     // Navigate to Settings
     await customersPage.navigateToSettings();
     const settingsPage = new SettingsPage(page);
     await settingsPage.verifyPageLoaded();
-    await settingsPage.verifyUrl(
-      "https://dashboard-template.nuxt.dev/settings"
-    );
+    await settingsPage.verifyUrl("/settings");
 
     // Navigate back to Home
     await settingsPage.navigateToHome();
     await homePage.verifyPageLoaded();
-    await homePage.verifyUrl("https://dashboard-template.nuxt.dev/");
+    await homePage.verifyUrl("/");
   });
 
   test("should navigate through all settings subsections", async ({ page }) => {
@@ -44,33 +40,23 @@ test.describe("Navigation Integration Tests", () => {
 
     // Start at General settings
     await settingsPage.verifyPageLoaded();
-    await settingsPage.verifyUrl(
-      "https://dashboard-template.nuxt.dev/settings"
-    );
+    await settingsPage.verifyUrl("/settings");
 
     // Navigate to Members
     await settingsPage.navigateToMembers();
-    await settingsPage.verifyUrl(
-      "https://dashboard-template.nuxt.dev/settings/members"
-    );
+    await settingsPage.verifyUrl("/settings/members");
 
     // Navigate to Notifications
     await settingsPage.navigateToNotifications();
-    await settingsPage.verifyUrl(
-      "https://dashboard-template.nuxt.dev/settings/notifications"
-    );
+    await settingsPage.verifyUrl("/settings/notifications");
 
     // Navigate to Security
     await settingsPage.navigateToSecurity();
-    await settingsPage.verifyUrl(
-      "https://dashboard-template.nuxt.dev/settings/security"
-    );
+    await settingsPage.verifyUrl("/settings/security");
 
     // Navigate back to General
     await settingsPage.navigateToGeneral();
-    await settingsPage.verifyUrl(
-      "https://dashboard-template.nuxt.dev/settings"
-    );
+    await settingsPage.verifyUrl("/settings");
   });
 
   test("should maintain sidebar navigation consistency across pages", async ({
@@ -126,7 +112,7 @@ test.describe("Navigation Integration Tests", () => {
     const customersPage = new CustomersPage(page);
     await expect(customersPage.customersLink).toHaveAttribute(
       "aria-current",
-      "page"
+      "page",
     );
   });
 

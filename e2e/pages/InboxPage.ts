@@ -32,7 +32,7 @@ export class InboxPage extends BasePage {
   }
 
   async goto() {
-    await super.goto("https://dashboard-template.nuxt.dev/inbox");
+    await super.goto("/inbox");
   }
 
   async verifyPageLoaded() {

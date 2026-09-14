@@ -27,7 +27,9 @@ export class BasePage {
     this.sidebarCollapse = page.getByRole("button", {
       name: "Collapse sidebar",
     });
-    this.searchButton = page.getByRole("button", { name: /Search.*⌘.*K/ });
+    this.searchButton = page.getByRole("button", {
+      name: /Search.*(⌘|Ctrl).*K/,
+    });
     this.userMenuButton = page.getByRole("button", {
       name: "Benjamin Canac Benjamin Canac",
     });

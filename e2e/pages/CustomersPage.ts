@@ -41,10 +41,10 @@ export class CustomersPage extends BasePage {
     this.tableHeaders = this.customersTable.locator("thead th");
     this.tableRows = this.customersTable.locator("tbody tr");
     this.selectAllCheckbox = this.customersTable.locator(
-      'thead input[type="checkbox"]'
+      'thead input[type="checkbox"]',
     );
     this.rowCheckboxes = this.customersTable.locator(
-      'tbody input[type="checkbox"]'
+      'tbody input[type="checkbox"]',
     );
 
     // Selection info
@@ -64,7 +64,7 @@ export class CustomersPage extends BasePage {
   }
 
   async goto() {
-    await super.goto("https://dashboard-template.nuxt.dev/customers");
+    await super.goto("/customers");
   }
 
   async verifyPageLoaded() {
@@ -116,7 +116,7 @@ export class CustomersPage extends BasePage {
     for (let i = 0; i < expectedHeaders.length; i++) {
       if (expectedHeaders[i] !== "") {
         await expect(this.tableHeaders.nth(i)).toContainText(
-          expectedHeaders[i]
+          expectedHeaders[i],
         );
       }
     }
@@ -198,7 +198,7 @@ export class CustomersPage extends BasePage {
   }
 
   async filterByStatus(
-    status: "subscribed" | "unsubscribed" | "bounced" | "All"
+    status: "subscribed" | "unsubscribed" | "bounced" | "All",
   ) {
     await this.selectStatusFilter(status);
   }

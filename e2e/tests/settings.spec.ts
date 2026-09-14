@@ -12,9 +12,7 @@ test.describe("Settings Page", () => {
 
   test("should display settings page correctly", async () => {
     await settingsPage.verifyPageLoaded();
-    await settingsPage.verifyUrl(
-      "https://dashboard-template.nuxt.dev/settings"
-    );
+    await settingsPage.verifyUrl("/settings");
     await settingsPage.verifyPageTitle("Nuxt Dashboard Template");
   });
 
@@ -106,27 +104,19 @@ test.describe("Settings Page", () => {
   test("should navigate between settings sections", async () => {
     // Navigate to Members
     await settingsPage.navigateToMembers();
-    await settingsPage.verifyUrl(
-      "https://dashboard-template.nuxt.dev/settings/members"
-    );
+    await settingsPage.verifyUrl("/settings/members");
 
     // Navigate to Notifications
     await settingsPage.navigateToNotifications();
-    await settingsPage.verifyUrl(
-      "https://dashboard-template.nuxt.dev/settings/notifications"
-    );
+    await settingsPage.verifyUrl("/settings/notifications");
 
     // Navigate to Security
     await settingsPage.navigateToSecurity();
-    await settingsPage.verifyUrl(
-      "https://dashboard-template.nuxt.dev/settings/security"
-    );
+    await settingsPage.verifyUrl("/settings/security");
 
     // Navigate back to General
     await settingsPage.navigateToGeneral();
-    await settingsPage.verifyUrl(
-      "https://dashboard-template.nuxt.dev/settings"
-    );
+    await settingsPage.verifyUrl("/settings");
   });
 
   test("should navigate to documentation", async () => {
@@ -193,23 +183,19 @@ test.describe("Settings Page", () => {
   test("should navigate to other main sections from settings", async () => {
     // Navigate to home
     await settingsPage.navigateToHome();
-    await settingsPage.verifyUrl("https://dashboard-template.nuxt.dev/");
+    await settingsPage.verifyUrl("/");
 
     // Navigate back to settings
     await settingsPage.navigateToSettings();
-    await settingsPage.verifyUrl(
-      "https://dashboard-template.nuxt.dev/settings"
-    );
+    await settingsPage.verifyUrl("/settings");
 
     // Navigate to customers
     await settingsPage.navigateToCustomers();
-    await settingsPage.verifyUrl(
-      "https://dashboard-template.nuxt.dev/customers"
-    );
+    await settingsPage.verifyUrl("/customers");
 
     // Navigate to inbox
     await settingsPage.navigateToInbox();
-    await settingsPage.verifyUrl("https://dashboard-template.nuxt.dev/inbox");
+    await settingsPage.verifyUrl("/inbox");
   });
 
   test("should verify form accessibility", async () => {
