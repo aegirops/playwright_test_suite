@@ -1,92 +1,89 @@
 import { Page, Locator, expect } from "@playwright/test";
 import { BasePage } from "./BasePage";
 
+export type StatCardTitle = "Customers" | "Conversions" | "Revenue" | "Orders";
+
 export class HomePage extends BasePage {
+  readonly pageContent: Locator;
   readonly pageHeading: Locator;
-  readonly dateRangePicker: Locator;
-  readonly periodSelector: Locator;
-
-  // Stats cards
-  readonly customersCard: Locator;
-  readonly customersValue: Locator;
-  readonly customersChange: Locator;
-  readonly conversionsCard: Locator;
-  readonly conversionsValue: Locator;
-  readonly conversionsChange: Locator;
-  readonly revenueCard: Locator;
-  readonly revenueValue: Locator;
-  readonly revenueChange: Locator;
-  readonly ordersCard: Locator;
-  readonly ordersValue: Locator;
-  readonly ordersChange: Locator;
-
-  // Revenue chart
-  readonly revenueChartTitle: Locator;
-  readonly revenueChartValue: Locator;
+  readonly notificationsButton: Locator;
+  readonly quickCreateButton: Locator;
+  readonly newMailMenuItem: Locator;
+  readonly newCustomerMenuItem: Locator;
+  readonly dateRangePickerButton: Locator;
+  readonly periodSelect: Locator;
+  readonly customersStatCard: Locator;
+  readonly conversionsStatCard: Locator;
+  readonly revenueStatCard: Locator;
+  readonly ordersStatCard: Locator;
+  readonly revenueChartLabel: Locator;
+  readonly revenueChartTotal: Locator;
   readonly revenueChart: Locator;
-
-  // Orders table
-  readonly ordersTable: Locator;
-  readonly tableHeaders: Locator;
-  readonly tableRows: Locator;
+  readonly salesTable: Locator;
+  readonly salesTableHeaders: Locator;
+  readonly salesTableRows: Locator;
 
   constructor(page: Page) {
     super(page);
 
-    this.pageHeading = page.getByRole("heading", { name: "Home", level: 1 });
-    this.dateRangePicker = page.getByRole("button", {
-      name: /\w+ \d+, \d+ - \w+ \d+, \d+/,
+    // Scope content locators to the home dashboard panel to avoid clashing
+    // with the sidebar navigation (e.g. "Customers" link, quick create menu)
+    this.pageContent = page.locator("#dashboard-panel-home");
+
+    this.pageHeading = this.pageContent.getByRole("heading", {
+      name: "Home",
+      level: 1,
     });
-    this.periodSelector = page
-      .getByRole("combobox")
-      .filter({ hasText: "daily" });
 
-    // Stats cards: each card is a clickable link with an accessible name
-    // matching its title, so scope from that link to its card root instead
-    // of relying on fragile text/DOM-position traversal.
-    const mainContent = page.locator("[id^='dashboard-panel']");
-    const statsCard = (title: string) =>
-      mainContent.getByRole("link", { name: title, exact: true }).locator("..");
+    // Header actions (no accessible name, identified by their icon)
+    this.notificationsButton = page
+      .locator("button")
+      .filter({ has: page.locator('[class*="i-lucide:bell"]') });
+    this.quickCreateButton = page
+      .locator("button")
+      .filter({ has: page.locator('[class*="i-lucide:plus"]') });
+    this.newMailMenuItem = page.getByRole("menuitem", { name: "New mail" });
+    this.newCustomerMenuItem = page.getByRole("menuitem", {
+      name: "New customer",
+    });
 
-    this.customersCard = statsCard("Customers");
-    this.customersValue = this.customersCard.locator("span.text-2xl");
-    this.customersChange = this.customersCard
-      .locator("span")
-      .filter({ hasText: /%$/ });
+    // Toolbar
+    this.dateRangePickerButton = page.getByRole("button", {
+      name: /\d{1,2}, \d{4}/,
+    });
+    this.periodSelect = page.getByRole("combobox");
 
-    this.conversionsCard = statsCard("Conversions");
-    this.conversionsValue = this.conversionsCard.locator("span.text-2xl");
-    this.conversionsChange = this.conversionsCard
-      .locator("span")
-      .filter({ hasText: /%$/ });
-
-    this.revenueCard = statsCard("Revenue");
-    this.revenueValue = this.revenueCard.locator("span.text-2xl");
-    this.revenueChange = this.revenueCard
-      .locator("span")
-      .filter({ hasText: /%$/ });
-
-    this.ordersCard = statsCard("Orders");
-    this.ordersValue = this.ordersCard.locator("span.text-2xl");
-    this.ordersChange = this.ordersCard
-      .locator("span")
-      .filter({ hasText: /%$/ });
+    // Stats cards
+    this.customersStatCard = this.pageContent.getByRole("link", {
+      name: "Customers",
+      exact: true,
+    });
+    this.conversionsStatCard = this.pageContent.getByRole("link", {
+      name: "Conversions",
+      exact: true,
+    });
+    this.revenueStatCard = this.pageContent.getByRole("link", {
+      name: "Revenue",
+      exact: true,
+    });
+    this.ordersStatCard = this.pageContent.getByRole("link", {
+      name: "Orders",
+      exact: true,
+    });
 
     // Revenue chart
-    this.revenueChartTitle = page
-      .locator("p")
-      .filter({ hasText: "Revenue" })
-      .first();
-    this.revenueChartValue = page
-      .locator("p")
-      .filter({ hasText: /^\$[\d,]+$/ })
-      .first();
-    this.revenueChart = page.locator("figure").first();
+    this.revenueChartLabel = this.pageContent.locator("p.uppercase", {
+      hasText: "Revenue",
+    });
+    this.revenueChartTotal = this.pageContent.locator(
+      "p.text-3xl.text-highlighted.font-semibold",
+    );
+    this.revenueChart = page.locator(".unovis-xy-container");
 
-    // Orders table
-    this.ordersTable = page.getByRole("table");
-    this.tableHeaders = this.ordersTable.locator("thead th");
-    this.tableRows = this.ordersTable.locator("tbody tr");
+    // Recent sales table
+    this.salesTable = page.getByRole("table");
+    this.salesTableHeaders = this.salesTable.locator("thead th");
+    this.salesTableRows = this.salesTable.locator("tbody tr");
   }
 
   async goto() {
@@ -95,96 +92,75 @@ export class HomePage extends BasePage {
 
   async verifyPageLoaded() {
     await expect(this.pageHeading).toBeVisible();
-    await expect(this.dateRangePicker).toBeVisible();
-    await expect(this.periodSelector).toBeVisible();
-    await this.waitForPageLoad();
+    await expect(this.customersStatCard).toBeVisible();
+    await expect(this.salesTable).toBeVisible();
   }
 
-  async verifyStatsCards() {
-    await expect(this.customersCard).toBeVisible();
-    await expect(this.conversionsCard).toBeVisible();
-    await expect(this.revenueCard).toBeVisible();
-    await expect(this.ordersCard).toBeVisible();
+  async openNotifications() {
+    await this.notificationsButton.click();
   }
 
-  async getCustomersValue(): Promise<string> {
-    return (await this.customersValue.textContent()) || "";
+  async openQuickCreateMenu() {
+    await this.quickCreateButton.click();
   }
 
-  async getCustomersChange(): Promise<string> {
-    return (await this.customersChange.textContent()) || "";
+  async clickNewMail() {
+    await this.openQuickCreateMenu();
+    await this.newMailMenuItem.click();
   }
 
-  async getConversionsValue(): Promise<string> {
-    return (await this.conversionsValue.textContent()) || "";
+  async clickNewCustomer() {
+    await this.openQuickCreateMenu();
+    await this.newCustomerMenuItem.click();
   }
 
-  async getConversionsChange(): Promise<string> {
-    return (await this.conversionsChange.textContent()) || "";
+  async openDateRangePicker() {
+    await this.dateRangePickerButton.click();
   }
 
-  async getRevenueValue(): Promise<string> {
-    return (await this.revenueValue.textContent()) || "";
-  }
-
-  async getRevenueChange(): Promise<string> {
-    return (await this.revenueChange.textContent()) || "";
-  }
-
-  async getOrdersValue(): Promise<string> {
-    return (await this.ordersValue.textContent()) || "";
-  }
-
-  async getOrdersChange(): Promise<string> {
-    return (await this.ordersChange.textContent()) || "";
-  }
-
-  async verifyRevenueChart() {
-    await expect(this.revenueChartTitle).toBeVisible();
-    await expect(this.revenueChartValue).toBeVisible();
-    // The chart renders client-side after data fetch, so allow extra time.
-    await expect(this.revenueChart).toBeVisible({ timeout: 15000 });
-  }
-
-  async verifyOrdersTable() {
-    await expect(this.ordersTable).toBeVisible();
-    await expect(this.tableHeaders).toHaveCount(5); // ID, Date, Status, Email, Amount
-
-    // Verify table headers
-    const headers = ["ID", "Date", "Status", "Email", "Amount"];
-    for (let i = 0; i < headers.length; i++) {
-      await expect(this.tableHeaders.nth(i)).toContainText(headers[i]);
-    }
-  }
-
-  async getOrdersTableRowCount(): Promise<number> {
-    return await this.tableRows.count();
-  }
-
-  async getOrderById(orderId: string): Promise<Locator> {
-    return this.ordersTable.locator(`tr:has-text("${orderId}")`);
-  }
-
-  async clickDateRangePicker() {
-    await this.dateRangePicker.click();
+  async getDateRangeLabel(): Promise<string> {
+    return (await this.dateRangePickerButton.textContent()) || "";
   }
 
   async selectPeriod(period: string) {
-    // A plain click sometimes fails to open this popover in headless Chromium.
-    await this.periodSelector.click({ force: true });
+    await this.periodSelect.click();
     await this.page.getByRole("option", { name: period }).click();
   }
 
-  async clickStatsCardLink(
-    cardType: "customers" | "conversions" | "revenue" | "orders",
-  ) {
-    const cards = {
-      customers: this.customersCard,
-      conversions: this.conversionsCard,
-      revenue: this.revenueCard,
-      orders: this.ordersCard,
-    };
+  getStatCard(title: StatCardTitle): Locator {
+    return this.pageContent.getByRole("link", { name: title, exact: true });
+  }
 
-    await cards[cardType].getByRole("link").click();
+  async clickStatCard(title: StatCardTitle) {
+    await this.getStatCard(title).click();
+  }
+
+  async verifyStatsCardsVisible() {
+    await expect(this.customersStatCard).toBeVisible();
+    await expect(this.conversionsStatCard).toBeVisible();
+    await expect(this.revenueStatCard).toBeVisible();
+    await expect(this.ordersStatCard).toBeVisible();
+  }
+
+  async verifyRevenueChartVisible() {
+    await expect(this.revenueChartLabel).toBeVisible();
+    await expect(this.revenueChartTotal).toBeVisible();
+    await expect(this.revenueChart).toBeVisible();
+  }
+
+  async getSalesTableRowCount(): Promise<number> {
+    return await this.salesTableRows.count();
+  }
+
+  async verifySalesTableStructure() {
+    await expect(this.salesTable).toBeVisible();
+    await expect(this.salesTableHeaders).toHaveCount(5);
+
+    const expectedHeaders = ["ID", "Date", "Status", "Email", "Amount"];
+    for (let i = 0; i < expectedHeaders.length; i++) {
+      await expect(this.salesTableHeaders.nth(i)).toContainText(
+        expectedHeaders[i],
+      );
+    }
   }
 }

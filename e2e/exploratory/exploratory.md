@@ -1,154 +1,173 @@
-# Dashboard Template Application Exploration
+# Cahier des charges — Nuxt Dashboard Template
 
-## Overview
+> Document reconstruit par exploration manuelle (MCP Playwright) de l'application déployée sur
+> https://dashboard-template.nuxt.dev, croisée avec le code source du dépôt (`app/`, `server/`).
 
-The Nuxt Dashboard Template (https://dashboard-template.nuxt.dev) is a comprehensive business dashboard application built with Nuxt.js. It demonstrates a modern, responsive web application with multiple functional modules and a clean, professional user interface.
+## 1. Contexte et objectif
 
-## Application Structure
+L'application est un **tableau de bord d'administration (back-office)** de type SaaS, permettant à un
+utilisateur authentifié de :
+- suivre des indicateurs commerciaux (ventes, clients, revenus, conversions) ;
+- gérer une base de clients ;
+- consulter une messagerie interne (inbox) ;
+- gérer les paramètres du compte, de l'équipe et de la sécurité.
 
-### Navigation & Layout
+Stack technique observée : Nuxt 3 + Nuxt UI (composants `U*`), rendu SPA/SSR, données mockées via
+une API interne (`server/api/*.ts`).
 
-- **Sidebar Navigation**: Fixed left sidebar with collapsible functionality
-- **Main Navigation Sections**:
-  - Home (Dashboard)
-  - Inbox (with notification badge showing "4")
-  - Customers
-  - Settings (expandable with sub-sections)
-- **Secondary Navigation**:
-  - Feedback (links to GitHub repository)
-  - Help & Support (links to GitHub repository)
-- **User Profile**: Top-right corner showing "Benjamin Canac" with avatar
-- **Search Functionality**: Global search bar with keyboard shortcut (⌘ K)
+## 2. Structure générale de l'interface
 
-### Key Features & Pages
+### 2.1 Barre latérale (sidebar), commune à toutes les pages
+- Logo/organisation "Nuxt" avec sélecteur (bouton "Nuxt Nuxt", ouvre un menu de switch d'équipe).
+- Champ de recherche globale "Search…" avec raccourci clavier `⌘K` (Cmd Palette).
+- Menu de navigation principal :
+  - **Home** (`/`)
+  - **Inbox** (`/inbox`) avec badge indiquant le nombre de messages non lus (ex. "4")
+  - **Customers** (`/customers`)
+  - **Settings** (menu extensible) → General (`/settings`), Members (`/settings/members`),
+    Notifications (`/settings/notifications`), Security (`/settings/security`)
+- Menu secondaire en bas : liens externes "Feedback" et "Help & Support" (vers le repo GitHub du
+  template).
+- Bouton utilisateur en bas de la sidebar (avatar + nom, "Benjamin Canac") ouvrant un menu
+  utilisateur (`UserMenu`).
+- Bouton "Collapse/Open sidebar" pour réduire/agrandir la barre latérale (responsive).
+- Un bandeau de consentement cookies ("We use first-party cookies…") avec actions **Accept** /
+  **Opt out**, affiché en surcouche sur toutes les pages.
 
-#### 1. Home Dashboard
+### 2.2 En-tête de page
+Chaque page affiche un titre (`h1`) correspondant à la section active, et parfois des actions
+contextuelles à droite (ex. boutons d'icône sur Home, bouton "New customer" sur Customers).
 
-**URL**: `/`
-**Key Elements**:
+## 3. Page Home (`/`)
 
-- **Date Range Picker**: "Oct 2, 2025 - Oct 16, 2025" with period selector (daily/weekly/monthly)
-- **Statistics Cards**: 4 main KPI cards displaying:
-  - Customers: 673 (+6%)
-  - Conversions: 1516 (-9%)
-  - Revenue: $246,457 (+28%)
-  - Orders: 295 (+6%)
-- **Revenue Chart**: Interactive line chart showing revenue trends over time ($94,733 current)
-- **Recent Transactions Table**: Displays recent orders with columns:
-  - ID, Date, Status (paid/failed/refunded), Email, Amount
-  - Shows real transaction data with European currency (€)
+### 3.1 Filtres de période
+- Sélecteur de plage de dates (ex. "Aug 31, 2026 - Sep 14, 2026") ouvrant un date range picker.
+- Sélecteur de granularité : `daily` / `weekly` / `monthly` (type `Period`).
 
-#### 2. Inbox
+### 3.2 Cartes statistiques (KPI)
+4 cartes cliquables (redirigent vers `/customers`), chacune avec icône, libellé, valeur et variation
+en % (positive en vert, négative en rouge) :
+| KPI | Exemple de valeur | Format |
+|---|---|---|
+| Customers | 452 | Nombre entier |
+| Conversions | 1469 | Nombre entier |
+| Revenue | $466,968 | Devise USD |
+| Orders | 133 | Nombre entier |
 
-**URL**: `/inbox`
-**Key Elements**:
+### 3.3 Graphique de revenus
+- Zone de graphique (area chart) affichant l'évolution du revenu jour par jour sur la période
+  sélectionnée, avec axe des abscisses en dates ("1 Sep", "2 Sep", …) et une valeur totale mise en
+  avant (ex. "$79,078").
 
-- **Email Count**: Shows "20" total emails
-- **Tab Navigation**: "All" and "Unread" tabs
-- **Email List**: Comprehensive email inbox with:
-  - Sender names and timestamps
-  - Subject lines and email previews
-  - Various email types: business meetings, project updates, personal messages, notifications
-  - Realistic email content covering different business scenarios
+### 3.4 Table des dernières ventes (Sales)
+Colonnes : **ID**, **Date**, **Status** (`paid` | `failed` | `refunded`), **Email**, **Amount**
+(devise €). Les 5 dernières ventes sont affichées sans pagination visible sur la home.
 
-#### 3. Customers
+## 4. Page Customers (`/customers`)
 
-**URL**: `/customers`
-**Key Elements**:
+### 4.1 Barre d'outils
+- Bouton **"New customer"** (en-tête) → ouvre une modale de création (`AddModal.vue`) avec un
+  formulaire (nom, email, etc.).
+- Champ de filtre texte **"Filter emails..."** pour rechercher un client par email.
+- Bouton **"Delete"** avec compteur de sélection (actif si des lignes sont cochées) → ouvre une
+  modale de confirmation (`DeleteModal.vue`).
+- Sélecteur **"All"** (filtre par statut probable : subscribed / unsubscribed / bounced).
+- Bouton **"Display"** pour gérer la visibilité/l'ordre des colonnes de la table.
 
-- **Customer Management**: Full CRUD interface for customer data
-- **Search & Filter**: Email filter textbox and status dropdown ("All")
-- **Bulk Actions**: Checkbox selection with "Delete 1" action button
-- **Data Table**: Comprehensive customer information:
-  - ID, Name (with avatars), Email, Location, Status (subscribed/unsubscribed/bounced)
-  - Action buttons for individual customer management
-- **Pagination**: Navigation controls showing "1 of 20 row(s) selected"
-- **Add Customer**: "New customer" button for creating new entries
+### 4.2 Table des clients
+Colonnes : case à cocher (sélection multiple + "sélectionner tout"), **ID**, **Name** (avec
+sous-libellé "@username"), **Email** (colonne triable via bouton), **Location**, **Status**
+(`subscribed` | `unsubscribed` | `bounced`), et une colonne d'actions (menu contextuel par ligne).
 
-#### 4. Settings Section
+### 4.3 Pagination
+- Pied de table indiquant le nombre de lignes sélectionnées (ex. "1 of 20 row(s) selected").
+- Navigation de pagination : First Page, Previous Page, Page 1, Page 2, Next Page, Last Page
+  (10 lignes par page, 20 clients au total dans le jeu de données mocké).
 
-**URL**: `/settings/*`
+## 5. Page Inbox (`/inbox`)
 
-##### General Settings (`/settings`)
+- Titre "Inbox" avec compteur total de messages (ex. "20").
+- Onglets de filtre : **All** / **Unread**.
+- Liste de messages (panneau gauche) : expéditeur, heure/date d'envoi, objet, aperçu du corps du
+  message. Chaque message est cliquable.
+- Sélection d'un message ouvre le contenu complet du mail dans un panneau de lecture
+  (`InboxMail.vue`), incluant vraisemblablement des actions (archiver, marquer comme lu, etc.).
+- Modèle de données `Mail` : `id`, `unread`, `from` (User), `subject`, `body`, `date`.
 
-- **Profile Management**: User profile configuration
-- **Form Fields**:
-  - Name (Benjamin Canac)
-  - Email (ben@nuxtlabs.com)
-  - Username (benjamincanac)
-  - Avatar upload (JPG, GIF, PNG - 1MB max)
-  - Bio text area
-- **Save Functionality**: "Save changes" button
+## 6. Section Settings (`/settings/*`)
 
-##### Members Management (`/settings/members`)
+Sous-navigation commune (onglets verticaux) : **General**, **Members**, **Notifications**,
+**Security**, plus un lien externe "Documentation".
 
-- **Team Management**: Member invitation and role management
-- **Search**: "Search members" functionality
-- **Member List**: Shows team members with:
-  - Profile pictures and names
-  - Usernames (GitHub-style handles)
-  - Role assignments (owner/member)
-  - Individual action buttons
-- **Invite Feature**: "Invite people" button for adding new team members
-- **Notable Members**: Includes recognizable Nuxt.js team members (Anthony Fu, Daniel Roe, Pooya Parsa, etc.)
+### 6.1 General (`/settings`)
+Formulaire "Profile" avec bouton **"Save changes"**, composé de champs :
+- **Name*** (texte) — "Will appear on receipts, invoices, and other communication."
+- **Email*** (texte) — "Used to sign in, for email receipts and product updates."
+- **Username*** (texte) — "Your unique username for logging in and your profile URL."
+- **Avatar** (upload image, JPG/GIF/PNG, 1 Mo max) avec bouton **"Choose"**.
+- **Bio** (zone de texte libre, avec liens hypertexte auto-détectés).
 
-## Technical Observations
+### 6.2 Members (`/settings/members`)
+- Bouton **"Invite people"** (invitation par email).
+- Champ de recherche **"Search members"**.
+- Liste des membres de l'équipe : nom, `@username`, rôle modifiable via combobox (`member` |
+  `owner`), et bouton d'actions par ligne (ex. retirer le membre).
+- Jeu de données observé : Anthony Fu, Baptiste Leproux, Benjamin Canac (owner), Céline Dumerc,
+  Daniel Roe, Farnabaz, Ferdinand Coumau, Hugo Richard, … (liste plus longue, scrollable).
 
-### User Interface Design
+### 6.3 Notifications (`/settings/notifications`)
+Deux groupes de préférences, chacun avec des interrupteurs (switch) on/off :
+- **Notification channels** : Email (activé par défaut), Desktop.
+- **Account updates** : Weekly digest, Product updates (activé par défaut), Important updates
+  (activé par défaut, non désactivable pour les mises à jour de sécurité).
 
-- **Design System**: Clean, modern interface with consistent styling
-- **Responsive Layout**: Appears to be mobile-responsive with collapsible sidebar
-- **Color Scheme**: Professional color palette with good contrast
-- **Typography**: Clear, readable fonts with proper hierarchy
-- **Icons**: Consistent iconography throughout the interface
+### 6.4 Security (`/settings/security`)
+- Bloc **Password** : champs "Current password" / "New password" + bouton **"Update"**.
+- Bloc **Account** (zone à risque) : bouton **"Delete account"** — action destructive et
+  irréversible, avec avertissement explicite.
 
-### User Experience Features
+## 7. Éléments transverses / UX
 
-- **Keyboard Shortcuts**: Global search with ⌘ K shortcut
-- **Interactive Elements**: Hover states, clickable elements properly indicated
-- **Data Visualization**: Charts and graphs for analytics
-- **Notification System**: Cookie consent banner and notification badges
-- **Loading States**: Proper page transitions and state management
+- **Recherche globale** (`⌘K`) accessible depuis n'importe quelle page.
+- **Menu de notifications** (`NotificationsSlideover.vue`) accessible depuis un bouton d'icône en
+  en-tête, affichant une liste de notifications (modèle `Notification`).
+- **Bandeau cookies RGPD** persistant tant qu'aucun choix n'est fait (Accept / Opt out).
+- **Responsive** : la sidebar se replie en drawer mobile (bouton "Open/Collapse sidebar" caché en
+  desktop ≥ `lg`).
+- **Thème** : interface en mode clair par défaut (support dark mode probable via Nuxt UI, non
+  vérifié en exploration).
 
-### Data & Content
+## 8. Modèle de données (déduit du code source `app/types/index.d.ts`)
 
-- **Realistic Data**: All sections contain realistic, contextual data
-- **Internationalization**: Supports multiple currencies (€, $)
-- **Date Handling**: Proper date formatting and range selection
-- **Status Management**: Various status indicators (paid/failed/refunded, subscribed/unsubscribed)
+| Entité | Champs principaux |
+|---|---|
+| `User` | id, name, email, avatar, status (`subscribed`\|`unsubscribed`\|`bounced`), location |
+| `Mail` | id, unread, from (User), subject, body, date |
+| `Member` | name, username, role (`member`\|`owner`), avatar |
+| `Stat` | title, icon, value, variation, formatter |
+| `Sale` | id, date, status (`paid`\|`failed`\|`refunded`), email, amount |
+| `Notification` | id, unread, sender (User), body, date |
+| `Period` | `daily` \| `weekly` \| `monthly` |
+| `Range` | start (Date), end (Date) |
 
-### Navigation & Accessibility
+## 9. API interne observée (`server/api/*.ts`)
 
-- **Breadcrumb Navigation**: Clear page hierarchy
-- **Active States**: Current page clearly indicated in navigation
-- **Expandable Sections**: Settings menu with sub-navigation
-- **External Links**: Proper handling of external GitHub links
+- `GET /api/customers` — liste des clients (`User[]`)
+- `GET /api/mails` — liste des messages (`Mail[]`)
+- `GET /api/members` — liste des membres d'équipe (`Member[]`)
+- `GET /api/notifications` — liste des notifications (`Notification[]`)
 
-## Application Purpose
+## 10. Pistes de tests E2E à couvrir (non exhaustif)
 
-This appears to be a comprehensive dashboard template showcasing:
-
-- **Business Analytics**: Revenue tracking, customer metrics, conversion rates
-- **Communication Management**: Email inbox functionality
-- **Customer Relationship Management**: Customer data management and tracking
-- **Team Collaboration**: Member management and role assignment
-- **User Profile Management**: Personal settings and configuration
-
-## Technical Stack Indicators
-
-- **Framework**: Nuxt.js (evident from branding and URL structure)
-- **UI Components**: Appears to use a comprehensive UI component library
-- **State Management**: Proper state management for navigation and data
-- **Routing**: Client-side routing with proper URL structure
-
-## Screenshots Captured
-
-- `home-page.png`: Dashboard overview with analytics
-- `inbox-page.png`: Email inbox interface
-- `customers-page.png`: Customer management table
-- `settings-general-page.png`: Profile settings form
-- `settings-members-page.png`: Team member management
-
-## Conclusion
-
-The Nuxt Dashboard Template is a well-designed, feature-rich business dashboard that demonstrates modern web application capabilities. It provides a solid foundation for building business applications with comprehensive user management, data visualization, and communication features. The application showcases best practices in UI/UX design, responsive layout, and functional organization.
+- Navigation entre toutes les sections via la sidebar et vérification du titre de page.
+- Home : changement de période/plage de dates, affichage des 4 KPI, affichage du graphique et de la
+  table des ventes.
+- Customers : recherche par email, sélection de lignes, suppression (modale de confirmation),
+  création d'un client (modale d'ajout), tri de colonne, pagination.
+- Inbox : filtre All/Unread, sélection d'un message et affichage du détail.
+- Settings/General : édition et sauvegarde du profil.
+- Settings/Members : invitation, changement de rôle, recherche.
+- Settings/Notifications : activation/désactivation des switches.
+- Settings/Security : mise à jour du mot de passe, suppression de compte (à tester avec prudence /
+  mock).
+- Bandeau cookies : Accept / Opt out.

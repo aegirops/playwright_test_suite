@@ -8,6 +8,7 @@ description: 'Build or extend the Playwright POM (Page Object Model) e2e test su
 Builds on the rules in [playwright.instructions.md](../../instructions/playwright.instructions.md) (POM architecture, locator priority, headless run rule), which auto-apply to any `e2e/**/*.spec.ts` file. This skill adds the end-to-end workflow for producing a new suite or extending an existing one.
 
 ## When to Use
+
 - Adding e2e tests for a page/feature that doesn't have coverage yet
 - Extending an existing spec file with new test cases
 - Creating or updating a Page Object class
@@ -28,6 +29,7 @@ Builds on the rules in [playwright.instructions.md](../../instructions/playwrigh
    - Keep test bodies calling Page Object methods only — no raw locators/selectors inside `*.spec.ts` files.
 
 4. **Run the test headless** (no browser UI, per the run rule):
+
    ```
    npx playwright test e2e/tests/<feature>.spec.ts
    ```
