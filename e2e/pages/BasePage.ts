@@ -34,8 +34,9 @@ export class BasePage {
       name: "Benjamin Canac Benjamin Canac",
     });
 
-    // Main navigation (scope to sidebar to avoid conflicts with stats cards)
-    const mainNav = page.getByRole("navigation", { name: "Main" }).first();
+    // Main navigation: the sidebar's top nav is the first `navigation`
+    // landmark in the DOM (it has no accessible name to filter by).
+    const mainNav = page.getByRole("navigation").first();
     this.homeLink = mainNav.getByRole("link", { name: "Home" });
     this.inboxLink = mainNav.getByRole("link", { name: /Inbox.*\d+/ });
     this.customersLink = mainNav.getByRole("link", { name: "Customers" });
@@ -94,11 +95,11 @@ export class BasePage {
     // The cookie banner is added asynchronously after mount, so an immediate
     // isVisible() check can miss it and let it appear mid-test, intercepting
     // later clicks. Wait for it (bounded) instead, and ignore if it never shows.
-    await this.cookieAcceptButton.click({ timeout: 10_000 }).catch(() => {});
+    await this.cookieAcceptButton.click({ timeout: 10_000 }).catch(() => { });
   }
 
   async optOutCookies() {
-    await this.cookieOptOutButton.click({ timeout: 10_000 }).catch(() => {});
+    await this.cookieOptOutButton.click({ timeout: 10_000 }).catch(() => { });
   }
 
   async collapseSidebar() {

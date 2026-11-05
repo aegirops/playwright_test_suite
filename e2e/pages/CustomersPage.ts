@@ -33,7 +33,10 @@ export class CustomersPage extends BasePage {
     // Filters and actions
     this.searchInput = page.getByPlaceholder("Filter emails...");
     this.deleteButton = page.getByRole("button", { name: /Delete \d+/ });
-    this.statusFilter = page.getByRole("combobox").filter({ hasText: "All" });
+    // `hasText: "All"` would only match the default/unfiltered state, since
+    // the combobox's text reflects whichever option is currently selected.
+    // It's the only combobox on the page, so no further scoping is needed.
+    this.statusFilter = page.getByRole("combobox");
     this.displayButton = page.getByRole("button", { name: "Display" });
 
     // Table
@@ -228,6 +231,15 @@ export class CustomersPage extends BasePage {
     status: "subscribed" | "unsubscribed" | "bounced" | "All",
   ) {
     await this.selectStatusFilter(status);
+
+    if (status === "All") return;
+
+    // The table filters reactively after the option is selected, so reading
+    // rows immediately can race ahead of the re-render. Wait for the first
+    // row to reflect the new status before callers inspect the table.
+    await expect(this.tableRows.first().locator("td").nth(5)).toContainText(
+      status,
+    );
   }
 
   // Pagination methods
