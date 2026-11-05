@@ -40,20 +40,23 @@ export class CustomersPage extends BasePage {
     this.customersTable = page.getByRole("table");
     this.tableHeaders = this.customersTable.locator("thead th");
     this.tableRows = this.customersTable.locator("tbody tr");
-    this.selectAllCheckbox = this.customersTable.locator(
-      'thead input[type="checkbox"]',
-    );
-    this.rowCheckboxes = this.customersTable.locator(
-      'tbody input[type="checkbox"]',
-    );
+    // Checkboxes are custom `role=checkbox` buttons, not native `<input>`s.
+    this.selectAllCheckbox = this.customersTable
+      .locator("thead")
+      .getByRole("checkbox");
+    this.rowCheckboxes = this.customersTable
+      .locator("tbody")
+      .getByRole("checkbox");
 
     // Selection info
     this.selectedRowsText = page
       .locator("div")
       .filter({ hasText: /\d+ of \d+ row\(s\) selected/ });
 
-    // Pagination
-    this.pagination = page.getByRole("navigation");
+    // Pagination (scoped past the sidebar's two unrelated "Main" navigations)
+    this.pagination = page
+      .getByRole("navigation")
+      .filter({ has: page.getByRole("button", { name: "Next Page" }) });
     this.firstPageButton = page.getByRole("button", { name: "First Page" });
     this.previousPageButton = page.getByRole("button", {
       name: "Previous Page",
@@ -91,7 +94,14 @@ export class CustomersPage extends BasePage {
   }
 
   async selectStatusFilter(status: string) {
-    await this.statusFilter.click();
+    // Retry the open: right after load the trigger can be clicked before
+    // hydration finishes wiring up its handler, swallowing the click.
+    await expect(async () => {
+      await this.statusFilter.click();
+      await expect(
+        this.page.getByRole("option", { name: status }),
+      ).toBeVisible({ timeout: 1000 });
+    }).toPass();
     await this.page.getByRole("option", { name: status }).click();
   }
 
@@ -131,7 +141,11 @@ export class CustomersPage extends BasePage {
   }
 
   async getCustomerById(customerId: string): Promise<Locator> {
-    return this.customersTable.locator(`tr:has-text("${customerId}")`);
+    // Exact match on the ID cell: a substring match on the row would also
+    // catch e.g. id "1" matching row "10".
+    return this.tableRows.filter({
+      has: this.page.locator(`td:nth-child(2):text-is("${customerId}")`),
+    });
   }
 
   async getCustomerByName(customerName: string): Promise<Locator> {

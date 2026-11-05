@@ -53,23 +53,13 @@ export class HomePage extends BasePage {
     });
     this.periodSelect = page.getByRole("combobox");
 
-    // Stats cards
-    this.customersStatCard = this.pageContent.getByRole("link", {
-      name: "Customers",
-      exact: true,
-    });
-    this.conversionsStatCard = this.pageContent.getByRole("link", {
-      name: "Conversions",
-      exact: true,
-    });
-    this.revenueStatCard = this.pageContent.getByRole("link", {
-      name: "Revenue",
-      exact: true,
-    });
-    this.ordersStatCard = this.pageContent.getByRole("link", {
-      name: "Orders",
-      exact: true,
-    });
+    // Stats cards: the accessible link for each card is a zero-width
+    // "stretched link" overlay (by design in the underlying UI library), so
+    // target the card's root container for visibility/click instead.
+    this.customersStatCard = this.getStatCard("Customers");
+    this.conversionsStatCard = this.getStatCard("Conversions");
+    this.revenueStatCard = this.getStatCard("Revenue");
+    this.ordersStatCard = this.getStatCard("Orders");
 
     // Revenue chart
     this.revenueChartLabel = this.pageContent.locator("p.uppercase", {
@@ -128,7 +118,9 @@ export class HomePage extends BasePage {
   }
 
   getStatCard(title: StatCardTitle): Locator {
-    return this.pageContent.getByRole("link", { name: title, exact: true });
+    return this.pageContent
+      .locator('[data-slot="root"]')
+      .filter({ has: this.page.getByRole("link", { name: title, exact: true }) });
   }
 
   async clickStatCard(title: StatCardTitle) {

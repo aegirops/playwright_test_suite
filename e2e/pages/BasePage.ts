@@ -91,15 +91,14 @@ export class BasePage {
   }
 
   async acceptCookies() {
-    if (await this.cookieAcceptButton.isVisible()) {
-      await this.cookieAcceptButton.click();
-    }
+    // The cookie banner is added asynchronously after mount, so an immediate
+    // isVisible() check can miss it and let it appear mid-test, intercepting
+    // later clicks. Wait for it (bounded) instead, and ignore if it never shows.
+    await this.cookieAcceptButton.click({ timeout: 10_000 }).catch(() => {});
   }
 
   async optOutCookies() {
-    if (await this.cookieOptOutButton.isVisible()) {
-      await this.cookieOptOutButton.click();
-    }
+    await this.cookieOptOutButton.click({ timeout: 10_000 }).catch(() => {});
   }
 
   async collapseSidebar() {
