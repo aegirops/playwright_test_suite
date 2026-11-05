@@ -48,10 +48,12 @@ export class CustomersPage extends BasePage {
       .locator("tbody")
       .getByRole("checkbox");
 
-    // Selection info
+    // Selection info. `.last()` picks the innermost matching div: every
+    // ancestor also matches since its aggregated text contains this phrase.
     this.selectedRowsText = page
       .locator("div")
-      .filter({ hasText: /\d+ of \d+ row\(s\) selected/ });
+      .filter({ hasText: /\d+ of \d+ row\(s\) selected/ })
+      .last();
 
     // Pagination (scoped past the sidebar's two unrelated "Main" navigations)
     this.pagination = page
@@ -94,15 +96,21 @@ export class CustomersPage extends BasePage {
   }
 
   async selectStatusFilter(status: string) {
+    // Option labels are capitalized ("Subscribed"); match exactly so
+    // "subscribed" doesn't also resolve "Unsubscribed" as a substring.
+    const optionName =
+      status === "All" ? status : status.charAt(0).toUpperCase() + status.slice(1);
     // Retry the open: right after load the trigger can be clicked before
     // hydration finishes wiring up its handler, swallowing the click.
     await expect(async () => {
       await this.statusFilter.click();
       await expect(
-        this.page.getByRole("option", { name: status }),
+        this.page.getByRole("option", { name: optionName, exact: true }),
       ).toBeVisible({ timeout: 1000 });
     }).toPass();
-    await this.page.getByRole("option", { name: status }).click();
+    await this.page
+      .getByRole("option", { name: optionName, exact: true })
+      .click();
   }
 
   async clickDisplayButton() {
@@ -181,6 +189,11 @@ export class CustomersPage extends BasePage {
     return (await this.selectedRowsText.textContent()) || "";
   }
 
+  async getSelectedCount(): Promise<number> {
+    const match = (await this.getSelectedRowsText()).match(/(\d+) of \d+ row/);
+    return match ? parseInt(match[1], 10) : 0;
+  }
+
   async verifyCustomerSelected(index: number) {
     await expect(this.rowCheckboxes.nth(index)).toBeChecked();
   }
@@ -256,8 +269,8 @@ export class CustomersPage extends BasePage {
 
     for (let i = 0; i < count; i++) {
       const button = activePageButton.nth(i);
-      const ariaPressed = await button.getAttribute("aria-pressed");
-      if (ariaPressed === "true") {
+      const ariaCurrent = await button.getAttribute("aria-current");
+      if (ariaCurrent === "page") {
         const text = await button.textContent();
         return parseInt(text || "1");
       }

@@ -211,13 +211,19 @@ test.describe("Customers Page", () => {
   test("should handle customer selection and deletion", async () => {
     await customersPage.waitForTableToLoad();
 
+    // The table ships with a row pre-selected, so compare against a delta
+    // rather than assuming selecting one row yields a count of exactly 1.
+    const initialSelectedCount = await customersPage.getSelectedCount();
+
     // Select a customer
     await customersPage.selectCustomerByIndex(0);
     await customersPage.verifyCustomerSelected(0);
 
-    // Verify delete button shows count
+    // Verify delete button shows updated count
     await expect(customersPage.deleteButton).toBeVisible();
-    await expect(customersPage.deleteButton).toContainText("1");
+    await expect(customersPage.deleteButton).toContainText(
+      String(initialSelectedCount + 1),
+    );
 
     // Click delete button (this might open a confirmation modal)
     await customersPage.clickDeleteButton();
